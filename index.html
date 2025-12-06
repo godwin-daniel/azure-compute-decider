@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Azure Compute Decision Helper</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* =========================================
+       MICROSOFT AZURE INSPIRED THEME
+       ========================================= */
+    :root {
+      --azure-blue: #0078D4;
+      --azure-dark-blue: #005a9e;
+      --text-primary: #1a1a1a;
+      --text-secondary: #595959;
+      --bg-gradient-start: #f0f6ff;
+      --bg-gradient-end: #eef2ff;
+      --card-shadow: 0 6.4px 14.4px 0 rgba(0,0,0,.132), 0 1.2px 3.6px 0 rgba(0,0,0,.108);
+      --font-stack: "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-stack);
+      color: var(--text-primary);
+      /* Soft Azure-like gradient background */
+      background: linear-gradient(135deg, #e6f2ff 0%, #f3e5f5 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* --- MAIN CONTAINER --- */
+    .app-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 2rem;
+      box-sizing: border-box;
+    }
+
+    .app {
+      max-width: 800px;
+      width: 100%;
+      background: white;
+      /* Fluent Card Style */
+      box-shadow: var(--card-shadow);
+      border-radius: 8px;
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .app-header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #e1dfdd;
+      padding-bottom: 1.5rem;
+    }
+    .app-title {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .app-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+    }
+
+    /* --- CARDS & ANIMATIONS --- */
+    .fade-in { animation: fadeIn 0.4s cubic-bezier(0.33, 1, 0.68, 1); }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .question-text {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .question-help {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    /* --- OPTION BUTTONS (Tile Style) --- */
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .option-btn {
+      background: #fff;
+      border: 1px solid #8a8886; /* Neutral border */
+      border-radius: 4px;
+      padding: 24px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .option-btn:hover {
+      border-color: var(--azure-blue);
+      background-color: #f0f6ff; /* Light blue hover */
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .option-btn .label {
+      display: block;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--azure-blue);
+      margin-bottom: 6px;
+    }
+    .option-btn .meta {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* --- RESULT CARD --- */
+    .result-card {
+      background: #fdfdfd;
+      border: 1px solid #e1dfdd;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .result-header {
+      background: #f0f6ff;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid #e1dfdd;
+    }
+    
+    /* Logos */
+    .service-logo {
+      width: 56px;
+      height: 56px;
+      background: white;
+      color: var(--azure-blue);
+      font-weight: 800;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+    
+    .result-title { font-size: 22px; font-weight: 600; color: var(--text-primary); }
+    .result-category { font-size: 12px; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px; margin-top: 4px;}
+
+    .result-content { padding: 24px; }
+    .result-details { font-size: 15px; line-height: 1.6; margin-bottom: 20px; color: var(--text-primary); }
+    
+    .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+    .tag {
+      background: #f3f2f1;
+      color: #323130;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* --- HISTORY --- */
+    .history-block {
+      margin-top: 2rem;
+      border-top: 1px solid #e1dfdd;
+      padding-top: 1rem;
+    }
+    .history-title { font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; }
+    .history-list { font-size: 13px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 8px; }
+    .history-item { display: flex; align-items: center; }
+    .history-item::before { content: "✔"; color: #107c10; margin-right: 10px; font-size: 12px; font-weight: bold;}
+
+    /* --- FOOTER / ACTIONS --- */
+    .toolbar {
+      margin-top: 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #e1dfdd;
+      padding-top: 1.5rem;
+    }
+    .btn {
+      border: none;
+      border-radius: 2px;
+      padding: 8px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* Primary Azure Blue Button */
+    .btn-primary {
+      background-color: var(--azure-blue);
+      color: white;
+    }
+    .btn-primary:hover { background-color: var(--azure-dark-blue); }
+
+    /* Secondary / Outline */
+    .btn-secondary {
+      background: white;
+      border: 1px solid #8a8886;
+      color: var(--text-primary);
+    }
+    .btn-secondary:hover { background: #f3f2f1; }
+    .btn:disabled { opacity: 0.5; cursor: default; background: #f3f2f1; color: #a19f9d; border-color: #f3f2f1; }
+
+    @media (max-width: 600px) {
+      .app { padding: 24px; width: 100%; }
+      .options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <div class="app">
+      <header class="app-header">
+        <div class="app-title">Azure Compute Helper</div>
+        <div class="app-subtitle">Identify the right Azure service for your application workload.</div>
+      </header>
+
+      <main id="content"></main>
+
+      <footer class="toolbar">
+        <div>
+          <button id="backBtn" class="btn btn-secondary" disabled>Back</button>
+          <button id="restartBtn" class="btn btn-secondary" style="margin-left: 10px;">Start Over</button>
+        </div>
+        <div class="progress-text" id="progressText" style="color:#737373; font-size:12px;">Step 1</div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // ============================
+    // DATA (Logic unchanged)
+    // ============================
+    const decisionTree = {
+      // START
+      "root": {
+        type: "question",
+        question: "Do you want to build new or migrate?",
+        help: "Start at the top of the decision flow.",
+        options: [
+          { label: "Build new", meta: "Develop a new application from scratch.", next: "q_full_control" },
+          { label: "Migrate",   meta: "Move an existing application to Azure.", next: "q_migrate_type" }
+        ]
+      },
+
+      // MIGRATE BRANCH
+      "q_migrate_type": {
+        type: "question",
+        question: "Is this a Lift and Shift, or already optimized?",
+        help: "Lift & Shift moves the app as-is. Cloud Optimized usually implies containers.",
+        options: [
+          { label: "Lift and Shift",             meta: "Rehosting without major code changes.", next: "q_lift_containerize" },
+          { label: "Already optimized for cloud", meta: "Refactored for cloud-native features.", next: "q_hpc" }
+        ]
+      },
+
+      "q_lift_containerize": {
+        type: "question",
+        question: "Can it be containerized?",
+        help: "Even if migrating, can the workload run in a container?",
+        options: [
+          { label: "Yes", meta: "Go to container path.", next: "q_event_driven" }, 
+          { label: "No",  meta: "Cannot use containers.", next: "q_cots" }
+        ]
+      },
+
+      "q_cots": {
+        type: "question",
+        question: "Is it a Commercial off-the-shelf (COTS) app?",
+        help: "Vendor software (e.g., SAP, Adobe) vs Custom Code.",
+        options: [
+          { label: "Yes (COTS)", meta: "", next: "q_vmware_workload" },
+          { label: "No (Custom Code)",  meta: "", next: "r_app_service" } 
+        ]
+      },
+
+      "q_vmware_workload": {
+        type: "question",
+        question: "Is this a VMware workload?",
+        help: "Currently running on vSphere/ESXi?",
+        options: [
+          { label: "Yes", meta: "", next: "r_avs" },
+          { label: "No",  meta: "", next: "r_vm" }
+        ]
+      },
+
+      // BUILD NEW / CONTAINER BRANCH
+      "q_full_control": {
+        type: "question",
+        question: "Do you require full control?",
+        help: "Do you need deep OS access, kernel drivers, or specific agents?",
+        options: [
+          { label: "Yes", meta: "", next: "r_vm" },
+          { label: "No",  meta: "", next: "q_hpc" } 
+        ]
+      },
+
+      "q_hpc": {
+        type: "question",
+        question: "Is this an HPC workload?",
+        help: "High-performance computing or large, parallel numerical jobs.",
+        options: [
+          { label: "Yes", meta: "", next: "r_batch" },
+          { label: "No",  meta: "", next: "q_event_driven" }
+        ]
+      },
+
+      "q_event_driven": {
+        type: "question",
+        question: "Is it an event-driven workload with short processes?",
+        help: "Triggered by HTTP, timers, or queues (e.g., payment processing).",
+        options: [
+          { label: "Yes", meta: "", next: "r_functions" },
+          { label: "No",  meta: "", next: "q_managed_web" }
+        ]
+      },
+
+      "q_managed_web": {
+        type: "question",
+        question: "Do you need a managed web hosting platform?",
+        help: "Built-in scaling, SSL, authentication, and deployment slots.",
+        options: [
+          { label: "Yes", meta: "", next: "r_app_service" },
+          { label: "No",  meta: "", next: "q_full_orchestration" }
+        ]
+      },
+
+      "q_full_orchestration": {
+        type: "question",
+        question: "Do you need full-fledged orchestration?",
+        help: "Managing clusters, health probes, and complex rollouts.",
+        options: [
+          { label: "Yes", meta: "", next: "q_need_managed_service" },
+          { label: "No",  meta: "", next: "r_aci" }
+        ]
+      },
+
+      "q_need_managed_service": {
+        type: "question",
+        question: "Do you need a managed service?",
+        help: "Microsoft handles the control plane and patching.",
+        options: [
+          { label: "Yes", meta: "", next: "q_familiar_sf" },
+          { label: "No",  meta: "", next: "r_own_orch" }
+        ]
+      },
+
+      "q_familiar_sf": {
+        type: "question",
+        question: "Are you familiar with Service Fabric?",
+        help: "Or relying on older .NET framework versions.",
+        options: [
+          { label: "Yes", meta: "", next: "r_sf" },
+          { label: "No",  meta: "", next: "q_using_rh_os" }
+        ]
+      },
+
+      "q_using_rh_os": {
+        type: "question",
+        question: "Are you using Red Hat OpenShift?",
+        help: "Standardizing on OpenShift for containers.",
+        options: [
+          { label: "Yes", meta: "", next: "r_aro" },
+          { label: "No",  meta: "", next: "q_need_all_k8s" }
+        ]
+      },
+
+      "q_need_all_k8s": {
+        type: "question",
+        question: "Do you need access to all Kubernetes capabilities?",
+        help: "Direct API access, CRDs, and full ecosystem.",
+        options: [
+          { label: "Yes", meta: "", next: "r_aks" },
+          { label: "No",  meta: "", next: "r_aca" }
+        ]
+      },
+
+      // RESULTS
+      "r_vm": {
+        type: "result",
+        code: "VM",
+        title: "Virtual Machines",
+        category: "IaaS",
+        details: "You manage the OS, runtime, and agents yourself. Use this for maximum flexibility.",
+        tags: ["Full control", "Lift and shift"],
+        link: "https://azure.microsoft.com/en-us/products/virtual-machines/"
+      },
+      "r_avs": {
+        type: "result",
+        code: "AVS",
+        title: "Azure VMware Solution",
+        category: "Lift and shift",
+        details: "Keeps your VMware stack (vCenter, ESXi) on Azure infrastructure.",
+        tags: ["VMware", "Hybrid"],
+        link: "https://azure.microsoft.com/en-us/products/azure-vmware/"
+      },
+      "r_batch": {
+        type: "result",
+        code: "BATCH",
+        title: "Azure Batch",
+        category: "HPC",
+        details: "HPC and large batch workloads with job scheduling.",
+        tags: ["HPC", "Parallel jobs"],
+        link: "https://azure.microsoft.com/en-us/products/batch/"
+      },
+      "r_functions": {
+        type: "result",
+        code: "FUNC",
+        title: "Azure Functions",
+        category: "Serverless",
+        details: "Event-driven, short-lived processes triggered by timers or messages.",
+        tags: ["Event-driven", "Pay-per-execution"],
+        link: "https://azure.microsoft.com/en-us/products/functions/"
+      },
+      "r_app_service": {
+        type: "result",
+        code: "APP",
+        title: "Azure App Service",
+        category: "PaaS Web",
+        details: "Managed web hosting for custom apps or containers. Includes auto-scaling.",
+        tags: ["Web apps", "Managed hosting"],
+        link: "https://azure.microsoft.com/en-us/products/app-service/"
+      },
+      "r_aci": {
+        type: "result",
+        code: "ACI",
+        title: "Azure Container Instances",
+        category: "Simple Containers",
+        details: "Run containers on demand without orchestration.",
+        tags: ["No orchestration", "On-demand"],
+        link: "https://azure.microsoft.com/en-us/products/container-instances/"
+      },
+      "r_sf": {
+        type: "result",
+        code: "SF",
+        title: "Azure Service Fabric",
+        category: "Microservices",
+        details: "Distributed systems platform for microservices.",
+        tags: ["Service Fabric", ".NET"],
+        link: "https://azure.microsoft.com/en-us/products/service-fabric/"
+      },
+      "r_aro": {
+        type: "result",
+        code: "ARO",
+        title: "Azure Red Hat OpenShift",
+        category: "Managed OpenShift",
+        details: "Jointly engineered OpenShift by Microsoft and Red Hat.",
+        tags: ["Red Hat", "OpenShift"],
+        link: "https://azure.microsoft.com/en-us/products/openshift/"
+      },
+      "r_aks": {
+        type: "result",
+        code: "AKS",
+        title: "Azure Kubernetes Service",
+        category: "Kubernetes",
+        details: "Fully managed Kubernetes with full API access.",
+        tags: ["K8s", "Full Control"],
+        link: "https://azure.microsoft.com/en-us/products/kubernetes-service/"
+      },
+      "r_aca": {
+        type: "result",
+        code: "ACA",
+        title: "Azure Container Apps",
+        category: "Serverless Containers",
+        details: "Serverless container platform built on K8s but simpler.",
+        tags: ["Serverless", "K8s-based"],
+        link: "https://azure.microsoft.com/en-us/products/container-apps/"
+      },
+      "r_own_orch": {
+        type: "result",
+        code: "ORCH",
+        title: "Self-Managed Orchestration",
+        category: "IaaS",
+        details: "Run your own Kubernetes or OpenShift on VMs.",
+        tags: ["Self-managed", "Max control"],
+        link: "https://learn.microsoft.com/en-us/azure/virtual-machines/linux/tutorial-kubernetes-deploy-cluster"
+      }
+    };
+
+    // ============================
+    // APP LOGIC
+    // ============================
+    let currentNodeId = "root";
+    let historyStack = [];
+
+    const contentEl = document.getElementById("content");
+    const backBtn = document.getElementById("backBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const progressText = document.getElementById("progressText");
+
+    render();
+
+    backBtn.addEventListener("click", () => {
+      if (historyStack.length > 0) {
+        const prev = historyStack.pop();
+        currentNodeId = prev.nodeId;
+        render();
+      }
+    });
+
+    restartBtn.addEventListener("click", () => {
+      currentNodeId = "root";
+      historyStack = [];
+      render();
+    });
+
+    function render() {
+      const node = decisionTree[currentNodeId];
+      if (!node) { contentEl.innerHTML = "<p>Error: Unknown node.</p>"; return; }
+
+      backBtn.disabled = historyStack.length === 0;
+      progressText.textContent = `Step ${historyStack.length + 1}`;
+      contentEl.innerHTML = "";
+      
+      if (node.type === "question") {
+        renderQuestion(node);
+      } else {
+        renderResult(node);
+      }
+    }
+
+    function renderQuestion(node) {
+      const optionsHtml = node.options.map((opt, index) => `
+          <div class="option-btn" data-index="${index}" role="button">
+            <span class="label">${opt.label}</span>
+            <span class="meta">${opt.meta || ""}</span>
+          </div>`).join("");
+
+      contentEl.innerHTML = `
+        <div class="fade-in">
+          <div class="question-text">${node.question}</div>
+          <div class="question-help">${node.help}</div>
+          <div class="options">${optionsHtml}</div>
+        </div>`;
+
+      contentEl.querySelectorAll(".option-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const index = btn.getAttribute("data-index");
+          const selectedOption = node.options[index];
+          historyStack.push({
+            nodeId: currentNodeId,
+            questionText: node.question,
+            answerLabel: selectedOption.label
+          });
+          currentNodeId = selectedOption.next;
+          render();
+        });
+      });
+    }
+
+    function renderResult(node) {
+      const tagsHtml = node.tags.map(t => `<span class="tag">${t}</span>`).join("");
+      const historyHtml = historyStack.map(h => `<div class="history-item"><span>${h.answerLabel}</span></div>`).join("");
+      
+      const actionBtnHtml = node.link 
+        ? `<a href="${node.link}" target="_blank" class="btn btn-primary">Learn More</a>` 
+        : "";
+
+      contentEl.innerHTML = `
+        <div class="result-card fade-in">
+          <div class="result-header">
+             <div class="service-logo">${node.code}</div>
+             <div>
+               <div class="result-title">${node.title}</div>
+               <div class="result-category">${node.category}</div>
+             </div>
+          </div>
+          <div class="result-content">
+            <div class="tags">${tagsHtml}</div>
+            <div class="result-details">${node.details}</div>
+            
+            <div style="margin-bottom: 24px;">
+              ${actionBtnHtml}
+            </div>
+
+            <div class="history-block">
+               <div class="history-title">Decision Path</div>
+               <div class="history-list">${historyHtml}</div>
+            </div>
+          </div>
+        </div>`;
+    }
+  </script>
+</body>
+</html>
