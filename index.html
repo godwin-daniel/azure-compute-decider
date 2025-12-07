@@ -24,7 +24,6 @@
       min-height: 100vh;
       font-family: var(--font-stack);
       color: var(--text-primary);
-      /* Soft Azure-like gradient background */
       background: linear-gradient(135deg, #e6f2ff 0%, #f3e5f5 100%);
       display: flex;
       flex-direction: column;
@@ -45,7 +44,6 @@
       max-width: 800px;
       width: 100%;
       background: white;
-      /* Fluent Card Style */
       box-shadow: var(--card-shadow);
       border-radius: 8px;
       padding: 48px;
@@ -89,7 +87,7 @@
       line-height: 1.5;
     }
 
-    /* --- OPTION BUTTONS (Tile Style) --- */
+    /* --- OPTION BUTTONS --- */
     .options {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -97,7 +95,7 @@
     }
     .option-btn {
       background: #fff;
-      border: 1px solid #8a8886; /* Neutral border */
+      border: 1px solid #8a8886;
       border-radius: 4px;
       padding: 24px;
       text-align: left;
@@ -107,7 +105,7 @@
     }
     .option-btn:hover {
       border-color: var(--azure-blue);
-      background-color: #f0f6ff; /* Light blue hover */
+      background-color: #f0f6ff;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     .option-btn .label {
@@ -131,27 +129,31 @@
       overflow: hidden;
     }
     .result-header {
-      background: #f0f6ff;
+      background: #f8f9fa; 
       padding: 24px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 20px;
       border-bottom: 1px solid #e1dfdd;
     }
     
-    /* Logos */
+    /* LOGO STYLING */
     .service-logo {
-      width: 56px;
-      height: 56px;
+      width: 64px;
+      height: 64px;
       background: white;
-      color: var(--azure-blue);
-      font-weight: 800;
-      font-size: 15px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 6px; 
-      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      border: 1px solid #edebe9;
+      padding: 8px;
+    }
+    .service-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
     
     .result-title { font-size: 22px; font-weight: 600; color: var(--text-primary); }
@@ -170,18 +172,7 @@
       font-weight: 600;
     }
 
-    /* --- HISTORY --- */
-    .history-block {
-      margin-top: 2rem;
-      border-top: 1px solid #e1dfdd;
-      padding-top: 1rem;
-    }
-    .history-title { font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; }
-    .history-list { font-size: 13px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 8px; }
-    .history-item { display: flex; align-items: center; }
-    .history-item::before { content: "✔"; color: #107c10; margin-right: 10px; font-size: 12px; font-weight: bold;}
-
-    /* --- FOOTER / ACTIONS --- */
+    /* --- FOOTER --- */
     .toolbar {
       margin-top: 2.5rem;
       display: flex;
@@ -203,19 +194,9 @@
       align-items: center;
       gap: 8px;
     }
-    /* Primary Azure Blue Button */
-    .btn-primary {
-      background-color: var(--azure-blue);
-      color: white;
-    }
+    .btn-primary { background-color: var(--azure-blue); color: white; }
     .btn-primary:hover { background-color: var(--azure-dark-blue); }
-
-    /* Secondary / Outline */
-    .btn-secondary {
-      background: white;
-      border: 1px solid #8a8886;
-      color: var(--text-primary);
-    }
+    .btn-secondary { background: white; border: 1px solid #8a8886; color: var(--text-primary); }
     .btn-secondary:hover { background: #f3f2f1; }
     .btn:disabled { opacity: 0.5; cursor: default; background: #f3f2f1; color: #a19f9d; border-color: #f3f2f1; }
 
@@ -247,9 +228,10 @@
   </div>
 
   <script>
-    // ============================
-    // DATA (Logic unchanged)
-    // ============================
+    // Base URL for Azure Icons
+    const ICON_BASE = "https://raw.githubusercontent.com/benc-uk/icon-collection/master/azure-icons";
+    const FALLBACK_ICON = `${ICON_BASE}/Resource-Groups.svg`;
+
     const decisionTree = {
       // START
       "root": {
@@ -286,7 +268,7 @@
       "q_cots": {
         type: "question",
         question: "Is it a Commercial off-the-shelf (COTS) app?",
-        help: "Vendor software (e.g., SAP, Adobe) vs Custom Code.",
+        help: "Vendor software (e.g., SAP, Oracle) vs Custom Code.",
         options: [
           { label: "Yes (COTS)", meta: "", next: "q_vmware_workload" },
           { label: "No (Custom Code)",  meta: "", next: "r_app_service" } 
@@ -394,103 +376,103 @@
         ]
       },
 
-      // RESULTS
+      // RESULTS (Using SVG icons + Detailed "What is this?" Descriptions)
       "r_vm": {
         type: "result",
-        code: "VM",
+        icon: "Virtual-Machine.svg",
         title: "Virtual Machines",
         category: "IaaS",
-        details: "You manage the OS, runtime, and agents yourself. Use this for maximum flexibility.",
+        details: "Azure Virtual Machines (VMs) are on-demand, scalable computing resources. They give you total control over the operating system (Windows or Linux) and environment, identical to running a physical server, but virtualized.",
         tags: ["Full control", "Lift and shift"],
         link: "https://azure.microsoft.com/en-us/products/virtual-machines/"
       },
       "r_avs": {
         type: "result",
-        code: "AVS",
+        icon: "AVS.svg",
         title: "Azure VMware Solution",
         category: "Lift and shift",
-        details: "Keeps your VMware stack (vCenter, ESXi) on Azure infrastructure.",
+        details: "Azure VMware Solution enables you to run VMware vSphere clusters natively on dedicated bare-metal Azure infrastructure. It allows you to migrate legacy VMware workloads without refactoring or changing your existing tools.",
         tags: ["VMware", "Hybrid"],
         link: "https://azure.microsoft.com/en-us/products/azure-vmware/"
       },
       "r_batch": {
         type: "result",
-        code: "BATCH",
+        icon: "Batch-Accounts.svg",
         title: "Azure Batch",
         category: "HPC",
-        details: "HPC and large batch workloads with job scheduling.",
+        details: "Azure Batch is a platform service for running large-scale parallel and high-performance computing (HPC) applications efficiently in the cloud. It manages the scheduling of compute-intensive work across a pool of thousands of virtual machines.",
         tags: ["HPC", "Parallel jobs"],
         link: "https://azure.microsoft.com/en-us/products/batch/"
       },
       "r_functions": {
         type: "result",
-        code: "FUNC",
+        icon: "Function-Apps.svg",
         title: "Azure Functions",
         category: "Serverless",
-        details: "Event-driven, short-lived processes triggered by timers or messages.",
+        details: "Azure Functions is a serverless compute service that lets you run event-triggered code without explicitly provisioning or managing infrastructure. It is ideal for short-lived tasks that respond to HTTP requests, timers, or database changes.",
         tags: ["Event-driven", "Pay-per-execution"],
         link: "https://azure.microsoft.com/en-us/products/functions/"
       },
       "r_app_service": {
         type: "result",
-        code: "APP",
+        icon: "App-Services.svg",
         title: "Azure App Service",
         category: "PaaS Web",
-        details: "Managed web hosting for custom apps or containers. Includes auto-scaling.",
+        details: "Azure App Service is a fully managed platform for building, deploying, and scaling web apps and APIs. It handles the infrastructure (OS patching, load balancing, scaling) so you can focus purely on your application code.",
         tags: ["Web apps", "Managed hosting"],
         link: "https://azure.microsoft.com/en-us/products/app-service/"
       },
       "r_aci": {
         type: "result",
-        code: "ACI",
+        icon: "Container-Instances.svg",
         title: "Azure Container Instances",
         category: "Simple Containers",
-        details: "Run containers on demand without orchestration.",
+        details: "Azure Container Instances (ACI) is the fastest and simplest way to run a container in Azure. It is a serverless solution that lets you launch containers without managing VMs or adopting a higher-level orchestration service like Kubernetes.",
         tags: ["No orchestration", "On-demand"],
         link: "https://azure.microsoft.com/en-us/products/container-instances/"
       },
       "r_sf": {
         type: "result",
-        code: "SF",
+        icon: "Service-Fabric-Clusters.svg",
         title: "Azure Service Fabric",
         category: "Microservices",
-        details: "Distributed systems platform for microservices.",
+        details: "Azure Service Fabric is a distributed systems platform for packaging, deploying, and managing scalable microservices and containers. It powers many of Microsoft's own core Azure services and is ideal for complex, stateful applications.",
         tags: ["Service Fabric", ".NET"],
         link: "https://azure.microsoft.com/en-us/products/service-fabric/"
       },
       "r_aro": {
         type: "result",
-        code: "ARO",
+        icon: "OpenShift.svg", 
         title: "Azure Red Hat OpenShift",
         category: "Managed OpenShift",
-        details: "Jointly engineered OpenShift by Microsoft and Red Hat.",
+        details: "Azure Red Hat OpenShift is a fully managed OpenShift service, jointly engineered and operated by Microsoft and Red Hat. It provides an enterprise-grade Kubernetes environment for customers already standardized on the Red Hat ecosystem.",
         tags: ["Red Hat", "OpenShift"],
         link: "https://azure.microsoft.com/en-us/products/openshift/"
       },
       "r_aks": {
         type: "result",
-        code: "AKS",
+        icon: "Kubernetes-Services.svg",
         title: "Azure Kubernetes Service",
         category: "Kubernetes",
-        details: "Fully managed Kubernetes with full API access.",
+        details: "Azure Kubernetes Service (AKS) is a fully managed Kubernetes service that simplifies deploying and managing containerized applications. It offloads the operational overhead of managing the Kubernetes control plane to Azure.",
         tags: ["K8s", "Full Control"],
         link: "https://azure.microsoft.com/en-us/products/kubernetes-service/"
       },
       "r_aca": {
         type: "result",
-        code: "ACA",
+        icon: "Container-Apps.svg",
         title: "Azure Container Apps",
         category: "Serverless Containers",
-        details: "Serverless container platform built on K8s but simpler.",
+        details: "Azure Container Apps is a serverless platform built on Kubernetes that allows you to run modern microservices and containerized applications. It abstracts away the complexity of cluster management while providing powerful scaling features.",
         tags: ["Serverless", "K8s-based"],
         link: "https://azure.microsoft.com/en-us/products/container-apps/"
       },
       "r_own_orch": {
         type: "result",
-        code: "ORCH",
+        icon: "Virtual-Machine.svg",
         title: "Self-Managed Orchestration",
         category: "IaaS",
-        details: "Run your own Kubernetes or OpenShift on VMs.",
+        details: "This approach involves deploying your own orchestrator (like Kubernetes, OpenShift, or VMware Tanzu) directly onto Azure Virtual Machines. It offers maximum control and customization but requires you to manage all aspects of the cluster operations.",
         tags: ["Self-managed", "Max control"],
         link: "https://learn.microsoft.com/en-us/azure/virtual-machines/linux/tutorial-kubernetes-deploy-cluster"
       }
@@ -569,16 +551,20 @@
 
     function renderResult(node) {
       const tagsHtml = node.tags.map(t => `<span class="tag">${t}</span>`).join("");
-      const historyHtml = historyStack.map(h => `<div class="history-item"><span>${h.answerLabel}</span></div>`).join("");
       
       const actionBtnHtml = node.link 
         ? `<a href="${node.link}" target="_blank" class="btn btn-primary">Learn More</a>` 
         : "";
 
+      // Construct Icon URL
+      const iconUrl = `${ICON_BASE}/${node.icon}`;
+
       contentEl.innerHTML = `
         <div class="result-card fade-in">
           <div class="result-header">
-             <div class="service-logo">${node.code}</div>
+             <div class="service-logo">
+                <img src="${iconUrl}" alt="${node.title}" onerror="this.onerror=null;this.src='${FALLBACK_ICON}';">
+             </div>
              <div>
                <div class="result-title">${node.title}</div>
                <div class="result-category">${node.category}</div>
@@ -590,11 +576,6 @@
             
             <div style="margin-bottom: 24px;">
               ${actionBtnHtml}
-            </div>
-
-            <div class="history-block">
-               <div class="history-title">Decision Path</div>
-               <div class="history-list">${historyHtml}</div>
             </div>
           </div>
         </div>`;
